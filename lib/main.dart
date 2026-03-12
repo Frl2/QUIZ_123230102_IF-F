@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screen/login_page.dart';
+import 'package:latihan_kuis_a/screen/login_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,10 +11,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Movie App',
+      title: 'Post App with Vote Feature',
       theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
       home: const LoginPage(),
-      debugShowCheckedModeBanner: false,
     );
   }
 }
