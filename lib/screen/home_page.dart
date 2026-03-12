@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/movie_model.dart';
-import 'movie_detail_page.dart';
+import 'package:latihan_kuis_a/models/post.dart';
+import 'post_detail_page.dart';
 
-// AddToListButton Widget
 class AddToListButton extends StatefulWidget {
   final VoidCallback? onPressed;
 
@@ -36,22 +35,76 @@ class _AddToListButtonState extends State<AddToListButton> {
   }
 }
 
-class MovieListPage extends StatelessWidget {
-  const MovieListPage({super.key});
+class PostListPage extends StatefulWidget {
+  const PostListPage({super.key, required Post post});
+
+  @override
+  State<PostListPage> createState() => _PostListPageState();
+}
+
+class _PostListPageState extends State<PostListPage> {
+  late List<Post> posts;
+
+  @override
+  void initState() {
+    super.initState();
+    posts = dummyPosts.map((post) => post).toList();
+  }
+
+  void handleVote(Post post, VoteStatus newVote) {
+    setState(() {
+      // Jika  tidak ada vote
+      if (post.voteStatus == VoteStatus.none) {
+        if (newVote == VoteStatus.upvoted) {
+          post.upvotes++;
+          post.voteStatus = VoteStatus.upvoted;
+        } else if (newVote == VoteStatus.downvoted) {
+          post.downvotes++;
+          post.voteStatus = VoteStatus.downvoted;
+        }
+      }
+      // Jika  sudah upvote
+      else if (post.voteStatus == VoteStatus.upvoted) {
+        if (newVote == VoteStatus.upvoted) {
+          // Membatalkan upvote
+          post.upvotes--;
+          post.voteStatus = VoteStatus.none;
+        } else if (newVote == VoteStatus.downvoted) {
+          // Ganti dari upvote ke downvote
+          post.upvotes--;
+          post.downvotes++;
+          post.voteStatus = VoteStatus.downvoted;
+        }
+      }
+      // Jika  sudah downvote
+      else if (post.voteStatus == VoteStatus.downvoted) {
+        if (newVote == VoteStatus.downvoted) {
+          // Membatalkan downvote
+          post.downvotes--;
+          post.voteStatus = VoteStatus.none;
+        } else if (newVote == VoteStatus.upvoted) {
+          // Ganti dari downvote ke upvote
+          post.downvotes--;
+          post.upvotes++;
+          post.voteStatus = VoteStatus.upvoted;
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Movie List'),
+        title: const Text('Post List'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(8),
-        itemCount: movieList.length,
+        itemCount: posts.length,
         itemBuilder: (context, index) {
-          final movie = movieList[index];
+          final post = posts[index];
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: InkWell(
@@ -59,7 +112,7 @@ class MovieListPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MovieDetailPage(movie: movie),
+                    builder: (context) => PostDetailPage(post: post),
                   ),
                 );
               },
@@ -68,11 +121,11 @@ class MovieListPage extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Movie Image
+                    // Post Image
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
-                        movie.imgUrl,
+                        post.imageUrl,
                         width: 80,
                         height: 120,
                         fit: BoxFit.cover,
@@ -87,21 +140,19 @@ class MovieListPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Movie Details
+                    // Post Details
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            movie.title,
+                            post.title,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text('${movie.year} • ${movie.genre}'),
-                          const SizedBox(height: 4),
+                          // Rating
                           Row(
                             children: [
                               const Icon(
@@ -111,19 +162,60 @@ class MovieListPage extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                movie.rating.toString(),
+                                post.upvotes.toString(),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],
                           ),
+                          const SizedBox(height: 4),
+
+                          // Upvote/Downvote Buttons
+                          Row(
+                            children: [
+                              // Upvote Button
+                              IconButton(
+                                icon: Icon(
+                                  Icons.arrow_upward,
+                                  size: 20,
+                                  color: post.voteStatus == VoteStatus.upvoted
+                                      ? Colors.orange
+                                      : Colors.grey,
+                                ),
+                                onPressed: () =>
+                                    handleVote(post, VoteStatus.upvoted),
+                                constraints: const BoxConstraints(),
+                                padding: EdgeInsets.zero,
+                              ),
+                              Text('${post.upvotes}'),
+                              const SizedBox(width: 8),
+
+                              // Downvote Button
+                              IconButton(
+                                icon: Icon(
+                                  Icons.arrow_downward,
+                                  size: 20,
+                                  color: post.voteStatus == VoteStatus.downvoted
+                                      ? Colors.blue
+                                      : Colors.grey,
+                                ),
+                                onPressed: () =>
+                                    handleVote(post, VoteStatus.downvoted),
+                                constraints: const BoxConstraints(),
+                                padding: EdgeInsets.zero,
+                              ),
+                              Text('${post.downvotes}'),
+                            ],
+                          ),
+
                           const SizedBox(height: 8),
+
                           AddToListButton(
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('${movie.title} added to list'),
+                                  content: Text('${post.title} added to list'),
                                   duration: const Duration(seconds: 1),
                                 ),
                               );
