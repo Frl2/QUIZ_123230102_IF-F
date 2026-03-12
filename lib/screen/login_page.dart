@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'moviel_list_page.dart';
+import 'package:latihan_kuis_a/models/post.dart';
+import 'package:latihan_kuis_a/screen/home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -21,7 +22,9 @@ class _LoginPageState extends State<LoginPage> {
       if (_passwordController.text == correctPassword) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const MovieListPage()),
+          MaterialPageRoute(
+            builder: (context) => PostListPage(post: dummyPosts[0]),
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
